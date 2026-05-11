@@ -1,0 +1,301 @@
+html
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nubank App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #111;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            background-color: white;
+            position: relative;
+            margin: 0 auto;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .hidden { display: none; }
+        
+        /* Cores e estilos fiéis ao modelo */
+        .text-nu-gray { color: #8e8e8e; }
+        .text-nu-black { color: #111111; }
+        .line-divider { border-top: 1px solid #f2f2f2; margin: 20px 0; }
+
+        .receipt-animate {
+            animation: slideUp 0.3s ease-out forwards;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        /* SVG NU Logo Customizado */
+        .nu-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nu-symbol {
+            width: 40px;
+            height: auto;
+        }
+
+        .verified-badge {
+            width: 18px;
+            height: 18px;
+            background-color: #767676;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Tela de Entrada */
+        #welcome-screen {
+            background-color: #820ad1;
+            z-index: 200;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container shadow-2xl">
+        
+        <!-- TELA DE BOAS-VINDAS (PEDIR NOME) -->
+        <div id="welcome-screen" class="absolute inset-0 flex flex-col items-center justify-center p-8 text-white">
+            <svg class="w-20 mb-8" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M44.4 72.8c-10.4 0-18.9-8.4-18.9-18.9V33.1h-8.2v20.8c0 14.9 12.1 27.1 27.1 27.1h6.6V72.8H44.4z" fill="white"/>
+                <path d="M55.6 27.2c10.4 0 18.9 8.4 18.9 18.9v20.8h8.2V46.1c0-14.9-12.1-27.1-27.1-27.1h-6.6v8.2H55.6z" fill="white"/>
+            </svg>
+            <h2 class="text-2xl font-bold mb-6 text-center">Bem-vindo! Qual é o seu nome?</h2>
+            <input id="initial-name-input" type="text" placeholder="Digite seu nome completo" class="w-full bg-white/20 border-b-2 border-white p-3 text-white placeholder:text-white/60 outline-none text-xl font-bold mb-8 text-center rounded-t-lg">
+            <button onclick="startApp()" class="w-full bg-white text-[#820ad1] py-4 rounded-full font-bold text-lg active:scale-95 transition-transform">Entrar no App</button>
+        </div>
+
+        <!-- PÁGINA INICIAL DO APP -->
+        <div id="page-home" class="hidden flex flex-col h-full">
+            <header class="bg-[#820ad1] text-white px-6 pt-12 pb-8 shrink-0">
+                <div class="flex justify-between items-center mb-8">
+                    <div onclick="openEditModal()" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center cursor-pointer">
+                        <span id="user-initial" class="font-bold">K</span>
+                    </div>
+                    <div class="flex gap-6 text-xl">
+                        <button onclick="toggleBalance()"><i id="eye-icon" class="fa-solid fa-eye text-lg"></i></button>
+                        <button onclick="openEditModal()"><i class="fa-solid fa-gear text-lg"></i></button>
+                    </div>
+                </div>
+                <p class="text-lg font-bold">Olá, <span id="display-name">Carregando...</span></p>
+            </header>
+
+            <div class="flex-1 overflow-y-auto no-scrollbar">
+                <div class="px-6 py-6 flex justify-between items-center">
+                    <div>
+                        <p class="text-md font-bold mb-1">Conta</p>
+                        <p id="balance-text" class="text-xl font-bold">R$ 4.250,32</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                </div>
+                <div class="px-4 py-2">
+                    <div onclick="openPixForm()" class="flex flex-col items-center gap-2 w-20 cursor-pointer">
+                        <div class="w-16 h-16 rounded-full bg-[#f0f1f5] flex items-center justify-center"><i class="fa-solid fa-pix text-xl"></i></div>
+                        <span class="text-xs font-bold">Área Pix</span>
+                    </div>
+                </div>
+                <div class="h-[6px] bg-[#f0f1f5] mt-6"></div>
+            </div>
+        </div>
+
+        <!-- FORMULÁRIO DE DADOS -->
+        <div id="modal-pix-form" class="hidden absolute inset-0 bg-white z-[60] flex flex-col p-8 overflow-y-auto">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-bold text-[#820ad1]">Simular Pix</h2>
+                <button onclick="closePixForm()" class="text-3xl text-gray-300">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <input id="in-pix-name" type="text" placeholder="Nome do Destinatário" class="w-full border-b border-gray-200 py-3 outline-none">
+                <input id="in-pix-key" type="text" placeholder="Chave Pix (CPF, E-mail, Tel)" class="w-full border-b border-gray-200 py-3 outline-none">
+                <input id="in-pix-inst" type="text" placeholder="Instituição" class="w-full border-b border-gray-200 py-3 outline-none">
+                <input id="in-pix-val" type="number" placeholder="Valor R$" class="w-full border-b border-gray-200 py-3 outline-none">
+                <div class="flex gap-4">
+                    <input id="in-pix-date" type="date" class="w-full border-b border-gray-200 py-3 text-sm">
+                    <input id="in-pix-time" type="time" class="w-full border-b border-gray-200 py-3 text-sm">
+                </div>
+                <button onclick="generateReceipt()" class="w-full bg-[#820ad1] text-white py-4 rounded-full font-bold mt-6 shadow-lg">Gerar Comprovante</button>
+            </div>
+        </div>
+
+        <!-- COMPROVANTE GIGANTE (ESTILO IMAGEM) -->
+        <div id="modal-receipt" class="hidden absolute inset-0 bg-white z-[100] flex flex-col overflow-y-auto receipt-animate no-scrollbar">
+            <div class="px-6 pt-10 pb-20">
+                <button onclick="closeReceipt()" class="text-4xl text-gray-300 mb-8 font-light">&times;</button>
+                
+                <div class="nu-logo-container mb-10">
+                    <svg class="nu-symbol" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M44.4 72.8c-10.4 0-18.9-8.4-18.9-18.9V33.1h-8.2v20.8c0 14.9 12.1 27.1 27.1 27.1h6.6V72.8H44.4z" fill="#333"/>
+                        <path d="M55.6 27.2c10.4 0 18.9 8.4 18.9 18.9v20.8h8.2V46.1c0-14.9-12.1-27.1-27.1-27.1h-6.6v8.2H55.6z" fill="#333"/>
+                    </svg>
+                    <div class="verified-badge">
+                        <i class="fa-solid fa-check text-[10px] text-white"></i>
+                    </div>
+                </div>
+
+                <h1 class="text-[34px] font-bold leading-tight mb-2">Comprovante de transferência</h1>
+                <p id="rec-dt-header" class="text-nu-gray font-medium text-lg mb-16">02 ABR 2026 - 23:53:35</p>
+
+                <div class="space-y-8">
+                    <div class="flex justify-between">
+                        <span class="font-bold text-lg">Valor</span>
+                        <span id="rec-val" class="text-nu-gray font-medium text-lg">R$ 1,00</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-bold text-lg">Tipo de transferência</span>
+                        <span class="text-nu-gray font-medium text-lg">Pix</span>
+                    </div>
+                    <div class="flex justify-between gap-4">
+                        <span class="font-bold text-lg whitespace-nowrap">ID da transação</span>
+                        <span class="text-nu-gray font-medium text-lg text-right break-all">E18236120202604030253s14d9b5016d</span>
+                    </div>
+                </div>
+
+                <div class="line-divider"></div>
+
+                <p class="text-nu-gray font-bold text-lg mb-8">Destino</p>
+                <div class="space-y-8">
+                    <div class="flex justify-between">
+                        <span class="font-bold text-lg">Nome</span>
+                        <span id="rec-name" class="text-nu-gray font-medium text-lg text-right">Destinatário</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-bold text-lg">Instituição</span>
+                        <span id="rec-inst" class="text-nu-gray font-medium text-lg text-right">Instituição</span>
+                    </div>
+                    <div class="flex justify-between gap-4">
+                        <span class="font-bold text-lg">Chave Pix</span>
+                        <span id="rec-key" class="text-nu-gray font-medium text-lg text-right break-all">chave@pix.com</span>
+                    </div>
+                </div>
+
+                <div class="line-divider"></div>
+
+                <p class="text-nu-gray font-bold text-lg mb-8">Origem</p>
+                <div class="flex justify-between mb-20">
+                    <span class="font-bold text-lg">Nome</span>
+                    <span id="rec-my-name" class="text-nu-gray font-medium text-lg text-right">Seu Nome</span>
+                </div>
+
+                <div class="mt-10 pt-10 border-t border-dashed border-gray-200 opacity-20 text-center">
+                    <p class="text-[9px] uppercase font-bold tracking-widest">Documento fictício para simulação</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL EDIÇÃO PERFIL (DENTRO DO APP) -->
+        <div id="modal-edit" class="hidden absolute inset-0 bg-white z-[120] p-8">
+            <h2 class="text-xl font-bold mb-6 text-[#820ad1]">Configurar Perfil</h2>
+            <div class="space-y-4">
+                <input id="in-name" type="text" placeholder="Seu Nome Completo" class="w-full border-b border-purple-600 py-2 outline-none font-bold">
+                <input id="in-balance" type="number" placeholder="Saldo de Exibição" class="w-full border-b border-purple-600 py-2 outline-none font-bold">
+                <button onclick="saveSettings()" class="w-full bg-[#820ad1] text-white py-3 rounded-full font-bold mt-4">Salvar</button>
+                <button onclick="closeEditModal()" class="w-full border border-gray-300 py-3 rounded-full font-bold mt-2">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let state = {
+            name: "",
+            balance: 4250.32,
+            show: true
+        };
+
+        function startApp() {
+            const nameInput = document.getElementById('initial-name-input').value.trim();
+            if (nameInput === "") {
+                alert("Por favor, digite seu nome.");
+                return;
+            }
+            state.name = nameInput;
+            updateUI();
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('page-home').classList.remove('hidden');
+        }
+
+        function formatKey(key) {
+            const clean = key.replace(/\D/g, '');
+            if (clean.length === 11 && !key.includes('@')) {
+                return `***.${clean.substring(3,6)}.${clean.substring(6,9)}-**`;
+            }
+            return key;
+        }
+
+        function updateUI() {
+            document.getElementById('balance-text').innerText = state.show ? state.balance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "••••";
+            document.getElementById('display-name').innerText = state.name;
+            document.getElementById('user-initial').innerText = state.name.charAt(0).toUpperCase();
+            document.getElementById('eye-icon').className = state.show ? "fa-solid fa-eye" : "fa-solid fa-eye-slash";
+        }
+
+        function toggleBalance() { state.show = !state.show; updateUI(); }
+        function openEditModal() { document.getElementById('modal-edit').classList.remove('hidden'); document.getElementById('in-name').value = state.name; document.getElementById('in-balance').value = state.balance; }
+        function closeEditModal() { document.getElementById('modal-edit').classList.add('hidden'); }
+        function saveSettings() {
+            state.name = document.getElementById('in-name').value || state.name;
+            state.balance = parseFloat(document.getElementById('in-balance').value) || 0;
+            updateUI();
+            closeEditModal();
+        }
+
+        function openPixForm() {
+            const now = new Date();
+            document.getElementById('in-pix-date').value = now.toISOString().split('T')[0];
+            document.getElementById('in-pix-time').value = now.toTimeString().slice(0,5);
+            document.getElementById('modal-pix-form').classList.remove('hidden');
+        }
+        function closePixForm() { document.getElementById('modal-pix-form').classList.add('hidden'); }
+
+        function generateReceipt() {
+            const name = document.getElementById('in-pix-name').value || "Destinatário";
+            const key = document.getElementById('in-pix-key').value || "chave@pix.com";
+            const inst = document.getElementById('in-pix-inst').value || "NU PAGAMENTOS - IP";
+            const val = parseFloat(document.getElementById('in-pix-val').value) || 0;
+            const date = document.getElementById('in-pix-date').value;
+            const time = document.getElementById('in-pix-time').value;
+
+            const months = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+            const [y, m, d] = date.split('-');
+            const dateFormatted = `${d} ${months[parseInt(m)-1]} ${y} - ${time}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`;
+
+            document.getElementById('rec-val').innerText = val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('rec-dt-header').innerText = dateFormatted;
+            document.getElementById('rec-name').innerText = name;
+            document.getElementById('rec-inst').innerText = inst;
+            document.getElementById('rec-key').innerText = formatKey(key);
+            document.getElementById('rec-my-name').innerText = state.name;
+
+            document.getElementById('modal-pix-form').classList.add('hidden');
+            document.getElementById('modal-receipt').classList.remove('hidden');
+        }
+
+        function closeReceipt() { document.getElementById('modal-receipt').classList.add('hidden'); }
+    </script>
+</body>
+</html>
